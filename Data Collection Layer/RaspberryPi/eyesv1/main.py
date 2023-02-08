@@ -1,71 +1,72 @@
+#!/usr/bin/python3
 import cv2
-import numpy as np
-import boto3
-import time
+from datetime import datetime
+from time import sleep
+import os
+import tinys3
+import yaml
 from picamera2 import Picamera2
 
 
-#initialize vvariables
-face_locations = []
-face_encodings = []
-face_names = []
-process_this_frame = True
-face_detected = False
+# testing
+with open("config.yml", 'r') as ymlfile:
+    cfg = yaml.load(ymlfile)
+
+# photo props
+image_width = cfg['image_settings']['horizontal_res']
+image_height = cfg['image_settings']['vertical_res']
+file_extension = cfg['image_settings']['file_extension']
+file_name = cfg['image_settings']['file_name']
+photo_interval = cfg['image_settings']['photo_interval'] # Interval between photo (in seconds)
+image_folder = cfg['image_settings']['folder_name']
 
 
-#initialize camera
-picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={format: 'XRGB8888', "size" : (640,480)}))
-picam2.start()
 
-#initialize face recognition
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
+# Grab images as numpy arrays and leave everything else to OpenCV.
+face_detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 cv2.startWindowThread()
+
+picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (image_width, image_height)}))
+picam2.start()
+count = 0
+
 
 
 while True:
-    #if process frame to save time
-    if process_this_frame:
-        face_detected = False
-    # Capture frame-by-frame
-        frame = picam2.capture_array()
-        # Our operations on the frame come here
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        # Display the resulting frame
-        cv2.imshow('frame',gray)
-        #detect faces
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    im = picam2.capture_array()
+    grey = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) 
+    faces = face_detector.detectMultiScale(grey, 1.3, 5)
 
-        #determine if face is detected
-        if len(faces) > 0:
-            face_detected = True
+    for (x, y, w, h) in faces:
+        cv2.rectangle(im, (x, y), (x + w, y + h), (0, 255, 0))
+    
+    if len(faces) != 0:
+        count += 1
+        out_path = f"/faces/face_{count}.{file_extension}"
+        cv2.imwrite(out_path, im)
 
-        else:
-            face_detected = False
+        # Upload to S3
+        conn = tinys3.Connection(cfg['s3']['access_key_id'], cfg['s3']['secret_access_key'])
+        f = open(out_path, 'rb')
+        conn.upload(out_path, f, cfg['s3']['bucket_name'],
+                headers={
+                'x-amz-meta-cache-control': 'max-age=60'
+                })
+        f.close()
 
-        if face_detected:
-            for (x,y,w,h) in faces:
-                cv2.rectangle(gray,(x,y),(x+w,y+h),(255,0,0),2)
-                roi_gray = gray[y:y+h, x:x+w]
-                roi_color = gray[y:y+h, x:x+w]
-                eyes = eye_cascade.detectMultiScale(roi_gray)
-                for (ex,ey,ew,eh) in eyes:
-                    cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-
-    process_this_frame = not process_this_frame
-    # Display the resulting frame
-    cv2.imshow('frame',gray)
+        # Delete local file
+        os.remove(out_path)
+        
 
 
+    cv2.imshow("Camera", im)
 
-# When everything done, release the capture
-picam2.stop()
-cv2.destroyAllWindows()
+    
 
 
 
 
-
+      
 
 
