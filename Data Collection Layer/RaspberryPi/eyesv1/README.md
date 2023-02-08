@@ -50,7 +50,8 @@ python3 main.py
 
 
 ## References
-[] https://github.com/rob5standingby/raspberry-pi-s3-cam/blob/master/s3cam.py
-[] https://github.com/calapsss/face_detection_tutorial
-[] https://github.com/smore-inc/tinys3
+- https://github.com/rob5standingby/raspberry-pi-s3-cam/blob/master/s3cam.py
+- https://github.com/calapsss/face_detection_tutorial
+- https://github.com/smore-inc/tinys3
+- https://github.com/calapsss/eyes_v1
 
