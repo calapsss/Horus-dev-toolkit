@@ -1,6 +1,8 @@
-# Object detection with Raspberry Pi
+# Development on Pi
 
-## Install dependencies
+## Object detection with Raspberry Pi
+
+### Install dependencies
 
 ```python
 pip3 install opencv-python 
@@ -12,4 +14,8 @@ sudo apt-get install libjasper-dev
 sudo apt-get install libqtgui4 
 sudo apt-get install libqt4-test
 ```
+
+### Links
+- https://github.com/deepinsight/insightface/tree/master/detection/retinaface
+- https://github.com/deepcam-cn/yolov5-face
 
