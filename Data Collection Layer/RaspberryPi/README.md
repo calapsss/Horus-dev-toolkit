@@ -18,4 +18,5 @@ sudo apt-get install libqt4-test
 ### Links
 - https://github.com/deepinsight/insightface/tree/master/detection/retinaface
 - https://github.com/deepcam-cn/yolov5-face
+- https://github.com/YYuanAnyVision/mxnet_mtcnn_face_detection
 
