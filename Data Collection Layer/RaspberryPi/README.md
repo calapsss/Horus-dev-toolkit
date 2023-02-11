@@ -13,3 +13,6 @@ sudo apt-get install libqtgui4
 sudo apt-get install libqt4-test
 ```
 
+## Improved Eyes_v1
+- Added new repo
+- https://github.com/calapsss/eyes_v1
